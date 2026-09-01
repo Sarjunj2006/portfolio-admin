@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Portfolio Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .tab-active { background-color: #2563eb; color: white; }
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center">
+  <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-sm">
+    <h1 class="text-2xl font-bold text-slate-800 mb-1">Portfolio Admin</h1>
+    <p class="text-sm text-slate-500 mb-6">Log in to edit your site content</p>
+    <div id="loginError" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded mb-4"></div>
+    <input id="loginUsername" type="text" placeholder="Username" class="w-full border rounded px-3 py-2 mb-3" />
+    <input id="loginPassword" type="password" placeholder="Password" class="w-full border rounded px-3 py-2 mb-3" />
+    <input id="apiBaseInput" type="text" placeholder="Backend URL (e.g. https://your-backend.onrender.com)" class="w-full border rounded px-3 py-2 mb-4 text-xs" />
+    <button onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition">
+      Log In
+    </button>
+    <p class="text-xs text-slate-400 mt-4">Currently pointing at: <span id="apiBaseLabel"></span></p>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashboard" class="hidden">
+  <header class="bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+    <h1 class="text-xl font-bold text-slate-800">Portfolio Admin</h1>
+    <button onclick="doLogout()" class="text-sm text-slate-500 hover:text-red-600">Log Out</button>
+  </header>
+
+  <div class="flex">
+    <!-- Sidebar -->
+    <nav class="w-48 bg-white border-r min-h-[calc(100vh-65px)] p-4 space-y-1">
+      <button data-tab="hero" class="tab-btn w-full text-left px-3 py-2 rounded text-sm font-medium">Hero</button>
+      <button data-tab="about" class="tab-btn w-full text-left px-3 py-2 rounded text-sm font-medium">About</button>
+      <button data-tab="skills" class="tab-btn w-full text-left px-3 py-2 rounded text-sm font-medium">Skills</button>
+      <button data-tab="expertise" class="tab-btn w-full text-left px-3 py-2 rounded text-sm font-medium">Expertise</button>
+      <button data-tab="projects" class="tab-btn w-full text-left px-3 py-2 rounded text-sm font-medium">Projects</button>
+      <button data-tab="social" class="tab-btn w-full text-left px-3 py-2 rounded text-sm font-medium">Social Links</button>
+      <button data-tab="images" class="tab-btn w-full text-left px-3 py-2 rounded text-sm font-medium">Images</button>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex-1 p-8 max-w-4xl">
+      <div id="statusBanner" class="hidden mb-4 p-3 rounded text-sm"></div>
+
+      <!-- HERO TAB -->
+      <section id="tab-hero" class="tab-content hidden space-y-4">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Hero Section (Home page)</h2>
+        <div><label class="block text-sm font-medium mb-1">Name</label><input id="hero_name" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Subtitle (the styled text under your name)</label><input id="hero_subtitle" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Role Badge</label><input id="hero_role_badge" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Tagline</label><input id="hero_tagline" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Tech Line</label><input id="hero_tech_line" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Description</label><textarea id="hero_description" rows="3" class="w-full border rounded px-3 py-2"></textarea></div>
+        <div><label class="block text-sm font-medium mb-1">Core Stack (shown in the side box)</label><textarea id="hero_core_stack" rows="2" class="w-full border rounded px-3 py-2"></textarea></div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Photo</label>
+          <input id="hero_photo_filename" placeholder="filename, e.g. abc123.png (upload in Images tab first)" class="w-full border rounded px-3 py-2" />
+          <p class="text-xs text-slate-400 mt-1">Upload your photo in the Images tab, then paste its filename here.</p>
+        </div>
+        <button onclick="saveHero()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded">Save Hero</button>
+      </section>
+
+      <!-- ABOUT TAB -->
+      <section id="tab-about" class="tab-content hidden space-y-4">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">About Section</h2>
+        <div><label class="block text-sm font-medium mb-1">Bio Intro (short line)</label><textarea id="about_bio_intro" rows="2" class="w-full border rounded px-3 py-2"></textarea></div>
+        <div><label class="block text-sm font-medium mb-1">Bio Body (longer paragraph)</label><textarea id="about_bio_body" rows="4" class="w-full border rounded px-3 py-2"></textarea></div>
+        <div><label class="block text-sm font-medium mb-1">Tags (comma-separated)</label><input id="about_tags" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Tech Stack (comma-separated)</label><input id="about_tech_stack" class="w-full border rounded px-3 py-2" /></div>
+        <button onclick="saveAbout()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded">Save About</button>
+      </section>
+
+      <!-- SKILLS TAB -->
+      <section id="tab-skills" class="tab-content hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-slate-800">Skill Categories</h2>
+          <button onclick="addSkillCard()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded">+ Add Skill Category</button>
+        </div>
+        <div id="skillsList" class="space-y-4"></div>
+      </section>
+
+      <!-- EXPERTISE TAB -->
+      <section id="tab-expertise" class="tab-content hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-slate-800">Expertise Cards</h2>
+          <button onclick="addExpertiseCard()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded">+ Add Expertise Card</button>
+        </div>
+        <div id="expertiseList" class="space-y-4"></div>
+      </section>
+
+      <!-- PROJECTS TAB -->
+      <section id="tab-projects" class="tab-content hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-slate-800">Projects</h2>
+          <button onclick="addProjectCard()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded">+ Add Project</button>
+        </div>
+        <div id="projectsList" class="space-y-4"></div>
+      </section>
+
+      <!-- SOCIAL TAB -->
+      <section id="tab-social" class="tab-content hidden space-y-4">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Social Links</h2>
+        <div><label class="block text-sm font-medium mb-1">GitHub URL</label><input id="social_github_url" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">LinkedIn URL</label><input id="social_linkedin_url" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Email</label><input id="social_email" class="w-full border rounded px-3 py-2" /></div>
+        <div><label class="block text-sm font-medium mb-1">Twitter/X URL</label><input id="social_twitter_url" class="w-full border rounded px-3 py-2" /></div>
+        <button onclick="saveSocial()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded">Save Social Links</button>
+      </section>
+
+      <!-- IMAGES TAB -->
+      <section id="tab-images" class="tab-content hidden">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Images</h2>
+        <div class="bg-white border rounded p-4 mb-6">
+          <label class="block text-sm font-medium mb-2">Upload New Image</label>
+          <input id="imageFile" type="file" accept="image/*" class="mb-2" />
+          <input id="imageLabel" placeholder="Label (e.g. hero_photo)" class="w-full border rounded px-3 py-2 mb-2" />
+          <button onclick="uploadImage()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded text-sm">Upload</button>
+        </div>
+        <div id="imagesList" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+let API_BASE = localStorage.getItem('admin_api_base') || "http://localhost:8000";
+document.getElementById('apiBaseLabel').textContent = API_BASE;
+document.getElementById('apiBaseInput').value = API_BASE;
+
+let token = localStorage.getItem('admin_token') || null;
+
+// ---------- Auth ----------
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  const apiBaseValue = document.getElementById('apiBaseInput').value.trim().replace(/\/$/, '');
+  if (apiBaseValue) {
+    API_BASE = apiBaseValue;
+    localStorage.setItem('admin_api_base', API_BASE);
+    document.getElementById('apiBaseLabel').textContent = API_BASE;
+  }
+  const errBox = document.getElementById('loginError');
+  errBox.classList.add('hidden');
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) throw new Error('Invalid username or password');
+    const data = await res.json();
+    token = data.access_token;
+    localStorage.setItem('admin_token', token);
+    showDashboard();
+  } catch (err) {
+    errBox.textContent = err.message.includes('fetch') ? 'Cannot reach the backend. Is it running on ' + API_BASE + '?' : err.message;
+    errBox.classList.remove('hidden');
+  }
+}
+
+function doLogout() {
+  token = null;
+  localStorage.removeItem('admin_token');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function authHeaders(json = true) {
+  const h = { 'Authorization': `Bearer ${token}` };
+  if (json) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+function showStatus(message, isError = false) {
+  const banner = document.getElementById('statusBanner');
+  banner.textContent = message;
+  banner.className = `mb-4 p-3 rounded text-sm ${isError ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`;
+  banner.classList.remove('hidden');
+  setTimeout(() => banner.classList.add('hidden'), 3000);
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active'));
+  document.getElementById(`tab-${tab}`).classList.remove('hidden');
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('tab-active');
+}
+
+// ---------- Dashboard init ----------
+async function showDashboard() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  switchTab('hero');
+  await Promise.all([loadHero(), loadAbout(), loadSkills(), loadExpertise(), loadProjects(), loadSocial(), loadImages()]);
+}
+
+// ---------- Hero ----------
+async function loadHero() {
+  const res = await fetch(`${API_BASE}/hero`);
+  const data = await res.json();
+  document.getElementById('hero_name').value = data.name || '';
+  document.getElementById('hero_subtitle').value = data.subtitle || '';
+  document.getElementById('hero_role_badge').value = data.role_badge || '';
+  document.getElementById('hero_tagline').value = data.tagline || '';
+  document.getElementById('hero_tech_line').value = data.tech_line || '';
+  document.getElementById('hero_description').value = data.description || '';
+  document.getElementById('hero_core_stack').value = data.core_stack || '';
+  document.getElementById('hero_photo_filename').value = data.photo_filename || '';
+}
+
+async function saveHero() {
+  try {
+    const payload = {
+      name: document.getElementById('hero_name').value,
+      subtitle: document.getElementById('hero_subtitle').value,
+      role_badge: document.getElementById('hero_role_badge').value,
+      tagline: document.getElementById('hero_tagline').value,
+      tech_line: document.getElementById('hero_tech_line').value,
+      description: document.getElementById('hero_description').value,
+      core_stack: document.getElementById('hero_core_stack').value,
+      photo_filename: document.getElementById('hero_photo_filename').value,
+    };
+    const res = await fetch(`${API_BASE}/hero`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+    if (res.ok) showStatus('Hero saved.'); else showStatus('Failed to save Hero.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+// ---------- About ----------
+async function loadAbout() {
+  const res = await fetch(`${API_BASE}/about`);
+  const data = await res.json();
+  document.getElementById('about_bio_intro').value = data.bio_intro || '';
+  document.getElementById('about_bio_body').value = data.bio_body || '';
+  document.getElementById('about_tags').value = data.tags || '';
+  document.getElementById('about_tech_stack').value = data.tech_stack || '';
+}
+
+async function saveAbout() {
+  try {
+    const payload = {
+      bio_intro: document.getElementById('about_bio_intro').value,
+      bio_body: document.getElementById('about_bio_body').value,
+      tags: document.getElementById('about_tags').value,
+      tech_stack: document.getElementById('about_tech_stack').value,
+    };
+    const res = await fetch(`${API_BASE}/about`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+    if (res.ok) showStatus('About saved.'); else showStatus('Failed to save About.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+// ---------- Skills ----------
+async function loadSkills() {
+  const res = await fetch(`${API_BASE}/skills`);
+  const items = await res.json();
+  const list = document.getElementById('skillsList');
+  list.innerHTML = '';
+  items.forEach(item => list.appendChild(renderSkillCard(item)));
+}
+
+function renderSkillCard(item) {
+  const div = document.createElement('div');
+  div.className = 'bg-white border rounded p-4 space-y-2';
+  div.innerHTML = `
+    <div class="grid grid-cols-2 gap-2">
+      <input placeholder="Title" class="s-title border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.title || '')}" />
+      <input placeholder="Tag Label (e.g. INTELLIGENCE)" class="s-tag border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.tag_label || '')}" />
+    </div>
+    <textarea placeholder="Description" rows="2" class="s-desc w-full border rounded px-2 py-1.5 text-sm">${escapeHtml(item.description || '')}</textarea>
+    <input placeholder="Skills (comma-separated)" class="s-skills w-full border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.skills || '')}" />
+    <div class="flex items-center justify-between">
+      <input type="number" placeholder="Order" class="s-order border rounded px-2 py-1.5 text-sm w-20" value="${item.sort_order ?? 0}" />
+      <div class="space-x-2">
+        <button class="save-skill bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded">Save</button>
+        <button class="delete-skill bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-3 py-1.5 rounded">Delete</button>
+      </div>
+    </div>
+  `;
+  div.querySelector('.save-skill').addEventListener('click', () => saveSkillCard(div, item.id));
+  div.querySelector('.delete-skill').addEventListener('click', () => deleteSkillCard(div, item.id));
+  return div;
+}
+
+function addSkillCard() {
+  const list = document.getElementById('skillsList');
+  list.appendChild(renderSkillCard({ title: '', tag_label: '', description: '', skills: '', sort_order: 0 }));
+}
+
+async function saveSkillCard(div, id) {
+  try {
+    const payload = {
+      title: div.querySelector('.s-title').value,
+      tag_label: div.querySelector('.s-tag').value,
+      description: div.querySelector('.s-desc').value,
+      skills: div.querySelector('.s-skills').value,
+      sort_order: parseInt(div.querySelector('.s-order').value) || 0,
+    };
+    let res;
+    if (id) {
+      res = await fetch(`${API_BASE}/skills/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+    } else {
+      res = await fetch(`${API_BASE}/skills`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+    }
+    if (res.ok) { showStatus('Skill category saved.'); loadSkills(); } else showStatus('Failed to save skill category.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+async function deleteSkillCard(div, id) {
+  try {
+    if (!id) { div.remove(); return; }
+    if (!confirm('Delete this skill category?')) return;
+    const res = await fetch(`${API_BASE}/skills/${id}`, { method: 'DELETE', headers: authHeaders(false) });
+    if (res.ok) { showStatus('Deleted.'); loadSkills(); } else showStatus('Failed to delete.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+// ---------- Expertise ----------
+async function loadExpertise() {
+  const res = await fetch(`${API_BASE}/expertise`);
+  const items = await res.json();
+  const list = document.getElementById('expertiseList');
+  list.innerHTML = '';
+  items.forEach(item => list.appendChild(renderExpertiseCard(item)));
+}
+
+function renderExpertiseCard(item) {
+  const div = document.createElement('div');
+  div.className = 'bg-white border rounded p-4 space-y-2';
+  div.innerHTML = `
+    <div class="grid grid-cols-2 gap-2">
+      <input placeholder="Title" class="e-title border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.title || '')}" />
+      <input placeholder="Tag (e.g. API & ARCHITECTURE)" class="e-tag border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.tag || '')}" />
+    </div>
+    <textarea placeholder="Text" rows="2" class="e-text w-full border rounded px-2 py-1.5 text-sm">${escapeHtml(item.text || '')}</textarea>
+    <div class="flex items-center justify-between">
+      <input type="number" placeholder="Order" class="e-order border rounded px-2 py-1.5 text-sm w-20" value="${item.sort_order ?? 0}" />
+      <div class="space-x-2">
+        <button class="save-expertise bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded">Save</button>
+        <button class="delete-expertise bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-3 py-1.5 rounded">Delete</button>
+      </div>
+    </div>
+  `;
+  div.querySelector('.save-expertise').addEventListener('click', () => saveExpertiseCard(div, item.id));
+  div.querySelector('.delete-expertise').addEventListener('click', () => deleteExpertiseCard(div, item.id));
+  return div;
+}
+
+function addExpertiseCard() {
+  const list = document.getElementById('expertiseList');
+  list.appendChild(renderExpertiseCard({ title: '', tag: '', text: '', sort_order: 0 }));
+}
+
+async function saveExpertiseCard(div, id) {
+  try {
+    const payload = {
+      title: div.querySelector('.e-title').value,
+      tag: div.querySelector('.e-tag').value,
+      text: div.querySelector('.e-text').value,
+      sort_order: parseInt(div.querySelector('.e-order').value) || 0,
+    };
+    let res;
+    if (id) {
+      res = await fetch(`${API_BASE}/expertise/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+    } else {
+      res = await fetch(`${API_BASE}/expertise`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+    }
+    if (res.ok) { showStatus('Expertise card saved.'); loadExpertise(); } else showStatus('Failed to save expertise card.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+async function deleteExpertiseCard(div, id) {
+  try {
+    if (!id) { div.remove(); return; }
+    if (!confirm('Delete this expertise card?')) return;
+    const res = await fetch(`${API_BASE}/expertise/${id}`, { method: 'DELETE', headers: authHeaders(false) });
+    if (res.ok) { showStatus('Deleted.'); loadExpertise(); } else showStatus('Failed to delete.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+// ---------- Projects ----------
+async function loadProjects() {
+  const res = await fetch(`${API_BASE}/projects`);
+  const items = await res.json();
+  const list = document.getElementById('projectsList');
+  list.innerHTML = '';
+  items.forEach(item => list.appendChild(renderProjectCard(item)));
+}
+
+function renderProjectCard(item) {
+  const div = document.createElement('div');
+  div.className = 'bg-white border rounded p-4 space-y-2';
+  div.innerHTML = `
+    <div class="grid grid-cols-2 gap-2">
+      <input placeholder="Title" class="p-title border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.title || '')}" />
+      <input placeholder="Category" class="p-category border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.category || '')}" />
+    </div>
+    <textarea placeholder="Description" rows="2" class="p-desc w-full border rounded px-2 py-1.5 text-sm">${escapeHtml(item.description || '')}</textarea>
+    <input placeholder="Tags (comma-separated)" class="p-tags w-full border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.tags || '')}" />
+    <div class="grid grid-cols-2 gap-2">
+      <input placeholder="Frontend repo URL" class="p-frontend border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.frontend_link || '')}" />
+      <input placeholder="Backend repo URL" class="p-backend border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.backend_link || '')}" />
+    </div>
+    <input placeholder="Repo URL (if single repo)" class="p-repo w-full border rounded px-2 py-1.5 text-sm" value="${escapeHtml(item.repo_link || '')}" />
+    <div class="flex items-center justify-between">
+      <input type="number" placeholder="Order" class="p-order border rounded px-2 py-1.5 text-sm w-20" value="${item.sort_order ?? 0}" />
+      <div class="space-x-2">
+        <button class="save-project bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded">Save</button>
+        <button class="delete-project bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-3 py-1.5 rounded">Delete</button>
+      </div>
+    </div>
+  `;
+  div.querySelector('.save-project').addEventListener('click', () => saveProjectCard(div, item.id));
+  div.querySelector('.delete-project').addEventListener('click', () => deleteProjectCard(div, item.id));
+  return div;
+}
+
+function addProjectCard() {
+  const list = document.getElementById('projectsList');
+  list.appendChild(renderProjectCard({ title: '', category: '', description: '', tags: '', frontend_link: '', backend_link: '', repo_link: '', sort_order: 0 }));
+}
+
+async function saveProjectCard(div, id) {
+  try {
+    const payload = {
+      title: div.querySelector('.p-title').value,
+      category: div.querySelector('.p-category').value,
+      description: div.querySelector('.p-desc').value,
+      tags: div.querySelector('.p-tags').value,
+      frontend_link: div.querySelector('.p-frontend').value,
+      backend_link: div.querySelector('.p-backend').value,
+      repo_link: div.querySelector('.p-repo').value,
+      sort_order: parseInt(div.querySelector('.p-order').value) || 0,
+    };
+    let res;
+    if (id) {
+      res = await fetch(`${API_BASE}/projects/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+    } else {
+      res = await fetch(`${API_BASE}/projects`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+    }
+    if (res.ok) { showStatus('Project saved.'); loadProjects(); } else showStatus('Failed to save project.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+async function deleteProjectCard(div, id) {
+  try {
+    if (!id) { div.remove(); return; }
+    if (!confirm('Delete this project?')) return;
+    const res = await fetch(`${API_BASE}/projects/${id}`, { method: 'DELETE', headers: authHeaders(false) });
+    if (res.ok) { showStatus('Deleted.'); loadProjects(); } else showStatus('Failed to delete.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+// ---------- Social Links ----------
+async function loadSocial() {
+  const res = await fetch(`${API_BASE}/social-links`);
+  const data = await res.json();
+  document.getElementById('social_github_url').value = data.github_url || '';
+  document.getElementById('social_linkedin_url').value = data.linkedin_url || '';
+  document.getElementById('social_email').value = data.email || '';
+  document.getElementById('social_twitter_url').value = data.twitter_url || '';
+}
+
+async function saveSocial() {
+  try {
+    const payload = {
+      github_url: document.getElementById('social_github_url').value,
+      linkedin_url: document.getElementById('social_linkedin_url').value,
+      email: document.getElementById('social_email').value,
+      twitter_url: document.getElementById('social_twitter_url').value,
+    };
+    const res = await fetch(`${API_BASE}/social-links`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+    if (res.ok) showStatus('Social links saved.'); else showStatus('Failed to save.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+// ---------- Images ----------
+async function loadImages() {
+  const res = await fetch(`${API_BASE}/images`);
+  const items = await res.json();
+  const list = document.getElementById('imagesList');
+  list.innerHTML = '';
+  items.forEach(img => {
+    const div = document.createElement('div');
+    div.className = 'bg-white border rounded p-3';
+    div.innerHTML = `
+      <img src="${API_BASE}${img.url}" class="w-full h-32 object-cover rounded mb-2" />
+      <p class="text-xs text-slate-500 truncate">${escapeHtml(img.original_name)}</p>
+      <div class="flex items-center gap-2 mt-2">
+        <input readonly value="${img.filename}" class="flex-1 border rounded px-2 py-1 text-xs" onclick="this.select()" />
+        <button class="del-img bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-2 py-1 rounded">Del</button>
+      </div>
+    `;
+    div.querySelector('.del-img').addEventListener('click', () => deleteImage(img.id));
+    list.appendChild(div);
+  });
+}
+
+async function uploadImage() {
+  try {
+    const fileInput = document.getElementById('imageFile');
+    const label = document.getElementById('imageLabel').value;
+    if (!fileInput.files.length) { showStatus('Choose a file first.', true); return; }
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('label', label);
+    const res = await fetch(`${API_BASE}/images`, { method: 'POST', headers: authHeaders(false), body: formData });
+    if (res.ok) {
+      showStatus('Image uploaded. Copy its filename into the field that needs it (e.g. Hero photo).');
+      fileInput.value = '';
+      document.getElementById('imageLabel').value = '';
+      loadImages();
+    } else {
+      showStatus('Upload failed.', true);
+    }
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+async function deleteImage(id) {
+  try {
+    if (!confirm('Delete this image?')) return;
+    const res = await fetch(`${API_BASE}/images/${id}`, { method: 'DELETE', headers: authHeaders(false) });
+    if (res.ok) { showStatus('Deleted.'); loadImages(); } else showStatus('Failed to delete.', true);
+  } catch (err) {
+    showStatus('Network error: ' + err.message, true);
+  }
+}
+
+// ---------- Utility ----------
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---------- Boot ----------
+if (token) {
+  showDashboard();
+}
+</script>
+</body>
+</html>
